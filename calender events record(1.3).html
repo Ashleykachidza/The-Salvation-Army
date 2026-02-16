@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blood & Fire Ledger — 2026 Calendar</title>
+<style>
+:root{
+  --bg0:#05070c;
+  --bg1:#070a12;
+  --ink:#eaf1ff;
+  --muted:rgba(234,241,255,.72);
+  --glass:rgba(255,255,255,.07);
+  --glass2:rgba(255,255,255,.12);
+  --stroke:rgba(255,255,255,.14);
+  --blue:#0b5a9a;
+  --blue2:#083b66;
+  --red:#dc2626;
+  --red2:#991b1b;
+  --gold:#22d3ee;
+  --green:#16a34a;
+  --shadow: 0 22px 70px rgba(0,0,0,.55);
+  --radius: 22px;
+  --ease: cubic-bezier(.2,.9,.2,1);
+}
+
+/* Reset */
+*{box-sizing:border-box;}
+html,body{height:100%; margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--ink); overflow:auto; background: linear-gradient(180deg,var(--bg0),var(--bg1));}
+
+/* Background orbs */
+.orb{position:fixed; border-radius:999px; filter: blur(28px); opacity:.55; pointer-events:none; transform: translate3d(0,0,0); animation: orbFloat 9s var(--ease) infinite alternate;}
+.orb.one{width:360px;height:360px; left:-90px; top:40px; background:rgba(34,211,238,.38); animation-duration: 10.5s;}
+.orb.two{width:420px;height:420px; right:-140px; top:120px; background:rgba(139,92,246,.30); animation-duration: 12s;}
+.orb.three{width:520px;height:520px; left:25%; bottom:-220px; background:rgba(22,163,74,.16); animation-duration: 14s;}
+@keyframes orbFloat{from{transform: translate3d(0,0,0) scale(1)} to{transform: translate3d(20px,-16px,0) scale(1.03)}}
+
+/* Layout */
+.wrap{display:grid; grid-template-columns: 1fr 1.5fr; gap:28px; padding:34px; min-height:100vh; align-items:start;}
+@media(max-width:1200px){.wrap{grid-template-columns:1fr;}}
+
+.hero{padding:14px;}
+.brand .title{font-weight:800; font-size:20px;}
+.brand .sub{color:var(--muted); font-size:13px; margin-top:4px;}
+.headline{font-size:clamp(28px,4vw,48px); font-weight:900; margin:18px 0;}
+.headline .accent{background: linear-gradient(90deg,var(--green),var(--gold),var(--blue)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.lead{color:rgba(234,241,255,.82); line-height:1.6; font-size:15.5px; max-width:50ch;}
+.pillRow{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px;}
+.pill{display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:999px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); box-shadow:0 14px 50px rgba(0,0,0,.25); backdrop-filter: blur(10px); font-size:13px;}
+.dot{width:10px;height:10px;border-radius:999px;background:var(--gold);}
+
+/* Card */
+.card{background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04)); border:1px solid rgba(255,255,255,.16); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(18px); padding:24px; position:relative; overflow:hidden; transition:transform .3s;}
+.card:hover{transform:translateY(-3px);}
+.cardHeader{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+.cardHeader h2{margin:0; font-size:22px; font-weight:900;}
+.cardHeader p{color:rgba(234,241,255,.72); font-size:13px; margin:2px 0 0;}
+
+/* Calendar Headers */
+.calendarHeaders {display:grid; grid-template-columns: repeat(7,1fr); text-align: center; font-weight:700; color: rgba(234,241,255,.65); font-size:13px; margin-bottom:6px; user-select:none;}
+.calendarHeaders div {padding:6px 0;}
+
+/* Month label */
+.monthLabel {grid-column: span 7; text-align:center; font-weight:800; font-size:16px; margin:8px 0; color:var(--gold);}
+
+/* Calendar Grid */
+.calendar{display:grid; grid-template-columns: repeat(7,1fr); gap:2px; margin-top:6px;}
+.calendar .day{padding:10px; border-radius:12px; background:rgba(255,255,255,.06); display:flex; justify-content:center; align-items:center; flex-direction:column; font-size:14px; position:relative; cursor:pointer; transition:0.2s;}
+.calendar .day:hover{background:rgba(34,211,238,.2);}
+.calendar .day span.event{position:absolute; bottom:4px; font-size:10px; background:var(--green); color:#fff; padding:1px 4px; border-radius:6px; white-space:nowrap;}
+.calendar .day.empty{background:transparent; cursor:default;}
+
+/* Event Panel */
+.eventPanel{margin-top:24px; display:flex; flex-direction:column; gap:10px;}
+.eventPanel input, .eventPanel button{padding:10px; border-radius:12px; border:none; font-size:14px;}
+.eventPanel input{background:rgba(0,0,0,.22); color:var(--ink);}
+.eventPanel button{background:linear-gradient(135deg,var(--green),var(--blue)); color:#fff; cursor:pointer; font-weight:700; border:none; transition:0.2s;}
+.eventPanel button:hover{transform:translateY(-2px); filter:saturate(1.2);}
+
+/* Toast */
+.toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); padding:12px 14px; border-radius:16px; background: rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.16); backdrop-filter:blur(12px); color: rgba(234,241,255,.92); box-shadow:0 18px 60px rgba(0,0,0,.45); z-index:1000; opacity:0; transition: opacity .2s ease, transform .2s ease;}
+
+/* Credit */
+.credit{position:fixed; bottom:12px; right:16px; font-size:12px; color: rgba(234,241,255,0.45); user-select:none; pointer-events:none; font-weight:500; letter-spacing:0.2px;}
+</style>
+</head>
+<body>
+<!-- Background Orbs -->
+<div class="orb one"></div>
+<div class="orb two"></div>
+<div class="orb three"></div>
+
+<main class="wrap">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="brand">
+      <div class="title">Blood & Fire Ledger</div>
+      <div class="sub">Bookkeeping • Calendar • Secure Audit Trail</div>
+    </div>
+    <h1 class="headline">Keep your year <span class="accent">organized</span>.</h1>
+    <p class="lead">
+      Track your events and financial activities with a calendar built for clarity and security.<br><br>
+      Inspired by the Salvation Army colors:
+      <strong style="color:var(--red)">Red</strong>, <strong style="color:var(--blue)">Blue</strong>, <strong style="color:var(--gold)">Gold</strong>.
+    </p>
+    <div class="pillRow">
+      <span class="pill"><span class="dot"></span> Interactive 2026 Calendar</span>
+      <span class="pill"><span class="dot"></span> Add/Delete Events Easily</span>
+      <span class="pill"><span class="dot"></span> Colorful & Animated</span>
+      <span class="pill"><span class="dot"></span> Offline Friendly</span>
+    </div>
+  </section>
+
+  <!-- Calendar Card -->
+  <section class="card">
+    <div class="cardHeader">
+      <h2>2026 Calendar</h2>
+      <p>Click a day to view or add events.</p>
+    </div>
+
+    <div class="calendarHeaders">
+      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    </div>
+
+    <div class="calendar" id="calendar"></div>
+
+    <div class="eventPanel">
+      <input type="date" id="eventDate" />
+      <input type="text" id="eventName" placeholder="Event name" />
+      <button id="addEvent">Add Event</button>
+      <button id="deleteEvent">Delete Event</button>
+    </div>
+  </section>
+</main>
+
+<div class="credit">by Ashley Tinaye Kachidza — KeYy Nation</div>
+
+<script>
+// Toast helper
+function toast(msg){
+  const el = document.createElement('div');
+  el.className='toast';
+  el.textContent=msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{el.style.opacity='1'; el.style.transform='translateX(-50%) translateY(-6px)';});
+  setTimeout(()=>{el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(6px)'; setTimeout(()=>el.remove(),250);},1800);
+}
+
+// Initialize events
+let events = JSON.parse(localStorage.getItem('bfEvents') || '{}');
+
+const calendar = document.getElementById('calendar');
+const eventDate = document.getElementById('eventDate');
+const eventName = document.getElementById('eventName');
+const addEvent = document.getElementById('addEvent');
+const deleteEvent = document.getElementById('deleteEvent');
+
+const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// Generate 2026 calendar
+function generateCalendar(){
+  calendar.innerHTML = '';
+  const startDate = new Date('2026-01-01');
+  const endDate = new Date('2026-12-31');
+
+  let current = new Date(startDate);
+  let currentMonth = -1;
+
+  while(current <= endDate){
+    // Month label
+    if(current.getMonth() !== currentMonth){
+      currentMonth = current.getMonth();
+      const monthDiv = document.createElement('div');
+      monthDiv.className='monthLabel';
+      monthDiv.textContent=monthNames[currentMonth];
+      calendar.appendChild(monthDiv);
+
+      // Insert empty days for month start
+      const firstDay = new Date(current.getFullYear(), currentMonth,1).getDay();
+      for(let i=0;i<firstDay;i++){
+        const empty = document.createElement('div');
+        empty.className='day empty';
+        calendar.appendChild(empty);
+      }
+    }
+
+    const dayDiv = document.createElement('div');
+    dayDiv.className='day';
+    dayDiv.dataset.date=current.toISOString().slice(0,10);
+    dayDiv.innerHTML=`<div>${current.getDate()}</div>`;
+    if(events[dayDiv.dataset.date]){
+      const span = document.createElement('span');
+      span.className='event';
+      span.textContent=events[dayDiv.dataset.date];
+      dayDiv.appendChild(span);
+    }
+    dayDiv.addEventListener('click', ()=>{
+      eventDate.value=dayDiv.dataset.date;
+      eventName.value=events[dayDiv.dataset.date]||'';
+    });
+    calendar.appendChild(dayDiv);
+
+    current.setDate(current.getDate()+1);
+  }
+}
+
+// Add Event
+addEvent.addEventListener('click', ()=>{
+  const date = eventDate.value;
+  const name = eventName.value.trim();
+  if(!date || !name){toast('Select date and enter event name'); return;}
+  events[date]=name;
+  localStorage.setItem('bfEvents', JSON.stringify(events));
+  toast('✅ Event added');
+  generateCalendar();
+});
+
+// Delete Event
+deleteEvent.addEventListener('click', ()=>{
+  const date = eventDate.value;
+  if(events[date]){
+    delete events[date]; 
+    localStorage.setItem('bfEvents', JSON.stringify(events)); 
+    toast('🗑️ Event deleted');
+    generateCalendar();
+  }
+});
+
+// Initial render
+generateCalendar();
+</script>
+</body>
+</html>

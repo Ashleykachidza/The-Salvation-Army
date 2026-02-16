@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory</title>
+<style>
+:root{
+  --bg0:#05070c; --bg1:#070a12; --ink:#eaf1ff;
+  --muted:rgba(234,241,255,.72); --emerald:#16a34a;
+  --violet:#8b5cf6; --cyan:#22d3ee; --danger:#ef4444; --radius:16px;
+  --ease:cubic-bezier(.2,.9,.2,1);
+}
+
+html,body{margin:0;padding:0;height:100%;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);
+background:radial-gradient(1200px 900px at 15% 20%, rgba(34,211,238,.22), transparent 60%),
+radial-gradient(900px 800px at 80% 25%, rgba(139,92,246,.18), transparent 55%),
+radial-gradient(1000px 900px at 65% 85%, rgba(22,163,74,.16), transparent 55%),
+linear-gradient(180deg, var(--bg0), var(--bg1));
+overflow-x:auto;}
+body::before{
+  content:"";
+  position:fixed; inset:-40px;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/></filter><rect width="180" height="180" filter="url(%23n)" opacity="0.22"/></svg>');
+  mix-blend-mode: overlay; opacity:.12;
+  pointer-events:none;
+  animation: drift 18s linear infinite;
+}
+@keyframes drift{0%{transform:translate3d(0,0,0);}100%{transform:translate3d(-120px, 80px,0);}}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:rgba(0,0,0,.3);backdrop-filter:blur(16px);position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(255,255,255,.14);border-radius:var(--radius);}
+header h1{margin:0;font-size:1.5em;font-weight:900;}
+header button{padding:8px 16px;font-size:1em;border:none;border-radius:10px;background:linear-gradient(135deg,var(--emerald),var(--violet));color:#000;cursor:pointer;box-shadow:0 12px 40px rgba(0,0,0,.4);}
+
+/* Card style */
+.card{
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:var(--radius); padding:12px;
+  box-shadow:0 22px 60px rgba(0,0,0,.35); backdrop-filter:blur(16px); overflow:auto;
+  animation: floatCard 4s ease-in-out infinite alternate;
+}
+@keyframes floatCard{from{transform: translateY(0);} to{transform: translateY(-8px);}}
+
+/* Tables */
+table{border-collapse:collapse;width:100%; table-layout:fixed;}
+th, td{padding:6px 8px;border:1px solid rgba(255,255,255,.14); text-align:center;white-space:nowrap;}
+th{background:rgba(0,0,0,.4); position:sticky; top:0; z-index:5;}
+input,select{border:none;border-radius:6px;padding:4px 6px;background:rgba(255,255,255,.08);color:#000;}
+
+/* Buttons */
+button{cursor:pointer;}
+.deleteBtn{background:var(--danger);color:#fff;border:none;border-radius:6px;padding:2px 6px;transition: transform .2s var(--ease);}
+.deleteBtn:hover{transform:scale(1.1);}
+.addBtn{background:var(--emerald);color:#000;border:none;border-radius:6px;padding:4px 8px;margin-top:4px;}
+
+/* Floating Inventory Info */
+.info{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  font-size:1em;font-weight:700;padding:6px 12px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.4);
+  animation: floatInfo 4s ease-in-out infinite alternate;
+  color:#fff;
+}
+@keyframes floatInfo{0%{transform:translateX(-50%) translateY(0);}100%{transform:translateX(-50%) translateY(-10px);}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Inventory</h1>
+  <button id="saveBtn">Save</button>
+</header>
+<main>
+  <div class="card" style="width:100%;">
+    <h3>Inventory Records</h3>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>Item ID</th>
+          <th>Item Name</th>
+          <th>Quantity</th>
+          <th>Category</th>
+          <th>Location</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows added dynamically -->
+      </tbody>
+    </table>
+    <button id="addRow" class="addBtn">Add Record</button>
+  </div>
+</main>
+
+<div class="info" id="infoDisplay">Add inventory items here</div>
+
+<script>
+// Initial table reference
+const tbody = document.querySelector('#inventoryTable tbody');
+
+// Function to add row
+function addRow(item={}){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" placeholder="ID" value="${item.id || ''}"></td>
+    <td><input type="text" placeholder="Name" value="${item.name || ''}"></td>
+    <td><input type="number" min="0" value="${item.qty || 0}"></td>
+    <td><input type="text" placeholder="Category" value="${item.category || ''}"></td>
+    <td><input type="text" placeholder="Location" value="${item.location || ''}"></td>
+    <td><button class="deleteBtn">🗑️</button></td>
+  `;
+  tbody.appendChild(tr);
+  tr.querySelector('.deleteBtn').addEventListener('click', ()=>tr.remove());
+}
+
+// Add initial row
+document.getElementById('addRow').addEventListener('click', ()=>addRow());
+
+// Save function
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const inventory = rows.map(r=>{
+    const cells = r.querySelectorAll('input');
+    return {
+      id: cells[0].value.trim(),
+      name: cells[1].value.trim(),
+      qty: cells[2].value,
+      category: cells[3].value.trim(),
+      location: cells[4].value.trim()
+    };
+  });
+  localStorage.setItem('inventory_records', JSON.stringify(inventory));
+  alert('Inventory saved!');
+});
+
+// Load saved data
+const saved = JSON.parse(localStorage.getItem('inventory_records')||'[]');
+saved.forEach(item=>addRow(item));
+</script>
+</body>
+</html>
